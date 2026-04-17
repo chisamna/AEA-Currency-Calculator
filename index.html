@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Currency Converter</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f5f7;
+      color: #1a1a2e;
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 6px;
+    }
+    .header img { height: 62px; width: auto; }
+    .header h1 a {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a1a2e;
+      text-decoration: none;
+    }
+    .header h1 a:hover { color: #2d7d46; }
+
+    .subtitle {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 26px;
+      margin-left: 76px;
+    }
+    .subtitle span { color: #bbb; margin: 0 4px; }
+
+    /* ── Input Card ── */
+    .input-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 20px;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #999;
+    }
+
+    .field input, .field select {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 15px;
+      color: #1a1a2e;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus, .field select:focus { border-color: #6c63ff; }
+    .field-amount input { width: 140px; }
+    .field-currency select { width: 190px; }
+
+    .swap-btn {
+      background: #f0eeff;
+      border: none;
+      border-radius: 8px;
+      width: 38px; height: 38px;
+      cursor: pointer;
+      font-size: 16px;
+      color: #6c63ff;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 2px;
+      transition: background 0.2s;
+    }
+    .swap-btn:hover { background: #e0dbff; }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      background: linear-gradient(135deg, #6c63ff, #8b80ff);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover  { opacity: 0.93; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* ── Live Rate Badge ── */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #edfdf4;
+      border: 1.5px solid #b6f0d3;
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a7a4a;
+      margin-bottom: 20px;
+    }
+    .live-dot {
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .live-date { color: #86c9a8; font-size: 12px; }
+
+    /* ── Results Grid ── */
+    .results-section { display: none; }
+    .results-section.visible { display: block; }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .result-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      border: 2px solid transparent;
+    }
+
+    .result-card.today    { border-color: #c5bbff; background: #faf9ff; }
+    .result-card.flowbrite{ border-color: #ffd666; background: #fffdf0; }
+    .result-card.corpay   { border-color: #ffd666; background: #fffdf0; }
+    .result-card.quoted   { border-color: #ffb3b3; background: #fff8f8; }
+    .result-card.fwd      { border-color: #b8dcff; background: #f5faff; }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      margin-bottom: 4px;
+    }
+    .today    .card-label { color: #6c63ff; }
+    .flowbrite .card-label{ color: #b07c00; }
+    .corpay   .card-label { color: #b07c00; }
+    .quoted   .card-label { color: #c0392b; }
+    .fwd      .card-label { color: #2563a8; }
+
+    .card-rate-display {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+
+    .card-amount {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a1a2e;
+      letter-spacing: -0.5px;
+    }
+    .card-currency {
+      font-size: 14px;
+      font-weight: 500;
+      color: #999;
+      margin-left: 4px;
+    }
+
+    /* savings / overspent badge */
+    .vs-badge {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+    .vs-saved { background: #edfdf4; color: #1a7a4a; }
+    .vs-over  { background: #fff0f0; color: #c0392b; }
+
+    /* Inline rate input inside card */
+    .card-rate-input-wrap { margin-top: 6px; }
+    .card-rate-input-wrap label {
+      font-size: 11px;
+      color: #bbb;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .card-rate-input {
+      width: 100%;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 7px;
+      padding: 7px 10px;
+      font-size: 13px;
+      color: #1a1a2e;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .flowbrite .card-rate-input:focus,
+    .corpay    .card-rate-input:focus { border-color: #f59e0b; }
+    .quoted    .card-rate-input:focus { border-color: #ef4444; }
+    .fwd       .card-rate-input:focus { border-color: #3b82f6; }
+
+    /* ── Print button ── */
+    .print-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .print-btn:hover { border-color: #6c63ff; color: #6c63ff; }
+
+    @media (max-width: 620px) {
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .input-row { flex-direction: column; align-items: stretch; }
+      .field-amount input, .field-currency select { width: 100%; }
+      .swap-btn { align-self: center; }
+      .subtitle { margin-left: 0; }
+    }
+
+    @media print {
+      body { background: white; padding: 12px; }
+      .input-card, .btn-primary, .print-btn { display: none; }
+      .result-card { box-shadow: none; border-width: 1px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <img src="elephant-logo.png" alt="AEA Logo" />
+    <h1><a href="" target="_blank" id="title-link">Currency Converter</a></h1>
+  </div>
+  <p class="subtitle">Live rates <span>·</span> Quoted rate <span>·</span> Forward contracts</p>
+
+  <!-- ── Input Card ── -->
+  <div class="input-card">
+    <div class="input-row">
+      <div class="field field-amount">
+        <label>Amount</label>
+        <input type="number" id="amount" value="" min="0" step="any" oninput="recalcAll()" />
+      </div>
+      <div class="field field-currency">
+        <label>From</label>
+        <select id="fromCurrency"></select>
+      </div>
+      <button class="swap-btn" onclick="swapCurrencies()" title="Swap">⇄</button>
+      <div class="field field-currency">
+        <label>To</label>
+        <select id="toCurrency"></select>
+      </div>
+    </div>
+    <button class="btn-primary" id="fetchBtn" onclick="fetchRate()">Get Live Exchange Rate</button>
+  </div>
+
+  <!-- ── Results ── -->
+  <div class="results-section" id="resultsSection">
+
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      <span id="liveBadgeText">–</span>
+      <span class="live-date" id="liveBadgeDate"></span>
+    </div>
+
+    <!-- Row 1: Today | Flowbrite | Corpay -->
+    <div class="grid-3">
+
+      <div class="result-card today">
+        <div class="card-label">Today's Rate</div>
+        <div class="card-rate-display" id="todayRateDisplay">–</div>
+        <div>
+          <span class="card-amount" id="todayAmount">–</span>
+          <span class="card-currency" id="todayCurrency">USD</span>
+        </div>
+        <div id="todayVs"></div>
+      </div>
+
+      <div class="result-card flowbrite">
+        <div class="card-label">Flow Brite Rate</div>
+        <div class="card-rate-input-wrap">
+          <label id="flowbriteRateHint">Rate (auto: live −0.35%) — EUR per $1 USD · <em>actual rate may vary throughout the day</em></label>
+          <input class="card-rate-input" type="number" id="flowbriteRate" step="any" oninput="recalcAll()" />
+        </div>
+        <div class="card-rate-display" id="flowbriteRateDisplay" style="margin-top:8px">–</div>
+        <div>
+          <span class="card-amount" id="flowbriteAmount">–</span>
+          <span class="card-currency" id="flowbriteCurrency">USD</span>
+        </div>
+        <div id="flowbriteVs"></div>
+      </div>
+
+      <div class="result-card corpay">
+        <div class="card-label">Corpay Rate</div>
+        <div class="card-rate-input-wrap">
+          <label id="corpayRateHint">Rate (auto: live −1.30%) — EUR per $1 USD · <em>actual rate may vary throughout the day</em></label>
+          <input class="card-rate-input" type="number" id="corpayRate" step="any" oninput="recalcAll()" />
+        </div>
+        <div class="card-rate-display" id="corpayRateDisplay" style="margin-top:8px">–</div>
+        <div>
+          <span class="card-amount" id="corpayAmount">–</span>
+          <span class="card-currency" id="corpayCurrency">USD</span>
+        </div>
+        <div id="corpayVs"></div>
+      </div>
+
+    </div>
+
+    <!-- Row 2: Quoted | Forward A | Forward B -->
+    <div class="grid-3" style="margin-bottom:24px">
+
+      <div class="result-card quoted">
+        <div class="card-label">Quoted Rate <span style="font-size:10px;font-weight:400;color:#ccc">(P&amp;L baseline)</span></div>
+        <div class="card-rate-input-wrap">
+          <label>Rate — EUR per $1 USD</label>
+          <input class="card-rate-input" type="number" id="quotedRate" placeholder="e.g. 0.7990" step="any" oninput="recalcAll()" />
+        </div>
+        <div class="card-rate-display" id="quotedRateDisplay" style="margin-top:8px">–</div>
+        <div>
+          <span class="card-amount" id="quotedAmount">–</span>
+          <span class="card-currency" id="quotedCurrency">USD</span>
+        </div>
+      </div>
+
+      <div class="result-card fwd">
+        <div class="card-label">Forward Rate A</div>
+        <div class="card-rate-input-wrap">
+          <label>Rate — EUR per $1 USD</label>
+          <input class="card-rate-input" type="number" id="fwdARate" placeholder="e.g. 0.8500" step="any" oninput="recalcAll()" />
+        </div>
+        <div class="card-rate-display" id="fwdARateDisplay" style="margin-top:8px">–</div>
+        <div>
+          <span class="card-amount" id="fwdAAmount">–</span>
+          <span class="card-currency" id="fwdACurrency">USD</span>
+        </div>
+        <div id="fwdAVs"></div>
+      </div>
+
+      <div class="result-card fwd">
+        <div class="card-label">Forward Rate B</div>
+        <div class="card-rate-input-wrap">
+          <label>Rate — EUR per $1 USD</label>
+          <input class="card-rate-input" type="number" id="fwdBRate" placeholder="e.g. 0.8500" step="any" oninput="recalcAll()" />
+        </div>
+        <div class="card-rate-display" id="fwdBRateDisplay" style="margin-top:8px">–</div>
+        <div>
+          <span class="card-amount" id="fwdBAmount">–</span>
+          <span class="card-currency" id="fwdBCurrency">USD</span>
+        </div>
+        <div id="fwdBVs"></div>
+      </div>
+
+    </div>
+
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+
+  </div>
+
+</div>
+
+<script>
+  const CURRENCIES = [
+    ["EUR","Euro"],["USD","US Dollar"],["GBP","British Pound"],
+    ["JPY","Japanese Yen"],["AUD","Australian Dollar"],["CAD","Canadian Dollar"],
+    ["CHF","Swiss Franc"],["NZD","New Zealand Dollar"],["CNY","Chinese Yuan"],
+    ["HKD","Hong Kong Dollar"],["SEK","Swedish Krona"],["NOK","Norwegian Krone"],
+    ["DKK","Danish Krone"],["ISK","Icelandic Króna"],["MXN","Mexican Peso"],
+    ["BRL","Brazilian Real"],["INR","Indian Rupee"],["SGD","Singapore Dollar"],
+    ["ZAR","South African Rand"],["PLN","Polish Złoty"],
+  ];
+
+  const FB_PCT = 0.0035;   // Flowbrite = live − 0.35%  (≈ −0.003 on EUR/USD)
+  const CP_PCT = 0.0130;   // Corpay    = live − 1.30%  (≈ −0.011 on EUR/USD)
+
+  let liveRate = null;
+  let fromCode = "EUR", toCode = "USD";
+
+  // Set title link to open this page in new tab
+  document.getElementById("title-link").href = window.location.href;
+
+  // Populate currency dropdowns
+  function populateSelects() {
+    ["fromCurrency","toCurrency"].forEach(id => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = "";
+      CURRENCIES.forEach(([code, name]) => {
+        const o = document.createElement("option");
+        o.value = code;
+        o.textContent = `${code} — ${name}`;
+        sel.appendChild(o);
+      });
+    });
+    document.getElementById("fromCurrency").value = "EUR";
+    document.getElementById("toCurrency").value   = "USD";
+  }
+
+  function swapCurrencies() {
+    const f = document.getElementById("fromCurrency");
+    const t = document.getElementById("toCurrency");
+    [f.value, t.value] = [t.value, f.value];
+  }
+
+  // Enter on main page = fetch
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter") fetchRate();
+  });
+
+  async function fetchRate() {
+    const btn = document.getElementById("fetchBtn");
+    btn.textContent = "Fetching…";
+    btn.disabled = true;
+
+    fromCode = document.getElementById("fromCurrency").value;
+    toCode   = document.getElementById("toCurrency").value;
+
+    try {
+      const res  = await fetch(`https://open.er-api.com/v6/latest/${toCode}`);
+      const data = await res.json();
+      if (data.result !== "success") throw new Error("API error");
+
+      liveRate = data.rates[fromCode];
+
+      const today = new Date().toISOString().slice(0, 10);
+      document.getElementById("liveBadgeText").textContent =
+        `Live: ${liveRate.toFixed(4)} ${fromCode} = 1 ${toCode}`;
+      document.getElementById("liveBadgeDate").textContent = `(${today})`;
+
+      // Auto-populate Flowbrite and Corpay using percentage-based deltas (scales for any currency)
+      document.getElementById("flowbriteRate").value = (liveRate * (1 - FB_PCT)).toFixed(4);
+      document.getElementById("corpayRate").value    = (liveRate * (1 - CP_PCT)).toFixed(4);
+
+      recalcAll();
+      document.getElementById("resultsSection").classList.add("visible");
+
+    } catch(e) {
+      alert("Could not fetch live rate. Please try again.");
+      console.error(e);
+    } finally {
+      btn.textContent = "Get Live Exchange Rate";
+      btn.disabled = false;
+    }
+  }
+
+  function convert(rate, amount) {
+    if (!rate || rate <= 0 || !amount || amount <= 0) return null;
+    return amount / rate;
+  }
+
+  function fmt(n) {
+    if (n === null || n === undefined || isNaN(n)) return "—";
+    return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Build vs-quoted badge HTML
+  function vsBadge(cardAmt, quotedAmt, sym) {
+    if (cardAmt === null || quotedAmt === null) return "";
+    const diff = cardAmt - quotedAmt;
+    if (diff >= 0) {
+      return `<span class="vs-badge vs-saved">${sym}${fmt(diff)} saved</span>`;
+    }
+    return `<span class="vs-badge vs-over">-${sym}${fmt(Math.abs(diff))} overspent</span>`;
+  }
+
+  function recalcAll() {
+    if (liveRate === null) return;
+    const amount    = parseFloat(document.getElementById("amount").value) || 0;
+    const sym       = toCode === "USD" ? "$" : (toCode === "EUR" ? "€" : toCode + " ");
+    const quotedVal = parseFloat(document.getElementById("quotedRate").value);
+    const quotedAmt = !isNaN(quotedVal) ? convert(quotedVal, amount) : null;
+
+    function renderCard(prefix, rateVal) {
+      const usd = rateVal > 0 ? convert(rateVal, amount) : null;
+      document.getElementById(`${prefix}RateDisplay`).textContent =
+        rateVal > 0 ? `${rateVal.toFixed(4)} ${fromCode} = 1 ${toCode}` : "–";
+      document.getElementById(`${prefix}Amount`).textContent  = fmt(usd);
+      document.getElementById(`${prefix}Currency`).textContent = toCode;
+      return usd;
+    }
+
+    // Today
+    const todayAmt = renderCard("today", liveRate);
+    document.getElementById("todayVs").innerHTML = vsBadge(todayAmt, quotedAmt, sym);
+
+    // Flowbrite
+    const fbVal = parseFloat(document.getElementById("flowbriteRate").value);
+    const fbAmt = renderCard("flowbrite", fbVal);
+    document.getElementById("flowbriteVs").innerHTML = vsBadge(fbAmt, quotedAmt, sym);
+
+    // Corpay
+    const cpVal = parseFloat(document.getElementById("corpayRate").value);
+    const cpAmt = renderCard("corpay", cpVal);
+    document.getElementById("corpayVs").innerHTML = vsBadge(cpAmt, quotedAmt, sym);
+
+    // Quoted (no vs badge — it IS the baseline)
+    renderCard("quoted", quotedVal || 0);
+    if (!isNaN(quotedVal) && quotedVal > 0) {
+      document.getElementById("quotedAmount").textContent  = fmt(quotedAmt);
+      document.getElementById("quotedCurrency").textContent = toCode;
+    }
+
+    // Forward A
+    const faVal = parseFloat(document.getElementById("fwdARate").value);
+    const faAmt = renderCard("fwdA", faVal);
+    document.getElementById("fwdAVs").innerHTML = vsBadge(faAmt, quotedAmt, sym);
+
+    // Forward B
+    const fbBVal = parseFloat(document.getElementById("fwdBRate").value);
+    const fbBAmt = renderCard("fwdB", fbBVal);
+    document.getElementById("fwdBVs").innerHTML = vsBadge(fbBAmt, quotedAmt, sym);
+  }
+
+  populateSelects();
+</script>
+</body>
+</html>
