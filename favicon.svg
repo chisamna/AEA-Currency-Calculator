@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Ear (behind head) -->
+  <ellipse cx="7" cy="13" rx="5" ry="7" fill="#4caf50"/>
+  <!-- Body -->
+  <ellipse cx="21" cy="21" rx="10" ry="8" fill="#2d7d46"/>
+  <!-- Head -->
+  <circle cx="12" cy="13" r="8" fill="#2d7d46"/>
+  <!-- Trunk -->
+  <path d="M 5 17 Q 1 23 3 28" stroke="#2d7d46" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <!-- Legs -->
+  <rect x="13" y="27" width="4" height="5" rx="2" fill="#2d7d46"/>
+  <rect x="20" y="27" width="4" height="5" rx="2" fill="#2d7d46"/>
+  <!-- Dollar sign through the middle -->
+  <text x="17" y="25" font-family="Arial Black, Arial, sans-serif" font-size="15" font-weight="900" fill="white" text-anchor="middle" dominant-baseline="auto">$</text>
+</svg>
